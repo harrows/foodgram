@@ -1,0 +1,36 @@
+version: '3.8'
+
+volumes:
+  pg_data_production:
+  backend_static:
+  backend_media:
+
+services:
+  db:
+    image: postgres:16
+    env_file: .env
+    volumes:
+      - pg_data_production:/var/lib/postgresql/data
+
+  backend:
+    image: harrowsdocker/foodgram_backend:latest
+    env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - backend_static:/app/collected_static
+      - backend_media:/app/media
+
+  frontend:
+    image: harrowsdocker/foodgram_frontend:latest
+
+  gateway:
+    image: harrowsdocker/foodgram_gateway:latest
+    ports:
+      - "7000:80"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - backend_static:/var/html/static
+      - backend_media:/var/html/media
