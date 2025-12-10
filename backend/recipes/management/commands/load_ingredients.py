@@ -1,32 +1,34 @@
-import csv
+import json
+from django.core.management.base import BaseCommand
+from recipes.models import Ingredient
+from django.conf import settings
 from pathlib import Path
 
-from django.core.management.base import BaseCommand
-
-from recipes.models import Ingredient
-
-
 class Command(BaseCommand):
-    help = 'Загрузка ингредиентов из data/ingredients.csv'
+    help = 'Load ingredients from data/ingredients.json'
 
-    def handle(self, *args, **options):
-        base_dir = Path(__file__).resolve().parents[3]
-        file_path = base_dir / 'data' / 'ingredients.csv'
+    def handle(self, *args, **kwargs):
+        file_path = Path(settings.BASE_DIR).parent / 'data' / 'ingredients.json'
+
         if not file_path.exists():
-            self.stdout.write(self.style.ERROR(f'Файл {file_path} не найден'))
+            self.stdout.write(self.style.ERROR(f'File not found: {file_path}'))
             return
 
-        created = 0
-        with file_path.open(encoding='utf-8') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                name, unit = row
-                obj, is_created = Ingredient.objects.get_or_create(
-                    name=name,
-                    measurement_unit=unit,
-                )
-                if is_created:
-                    created += 1
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        Ingredient.objects.all().delete()  # очистка перед загрузкой
+
+        objs = [
+            Ingredient(
+                name=item['name'],
+                measurement_unit=item['measurement_unit']
+            )
+            for item in data
+        ]
+
+        Ingredient.objects.bulk_create(objs)
+
         self.stdout.write(self.style.SUCCESS(
-            f'Импорт ингредиентов завершён, создано: {created}'
+            f'Successfully loaded {len(objs)} ingredients!'
         ))
