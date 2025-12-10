@@ -10,7 +10,6 @@ from recipes.models import (
     ShoppingCart,
     Tag,
 )
-from users.models import Subscription, User
 from users.serializers import ShortRecipeSerializer, UserSerializer
 from .fields import Base64ImageField
 
@@ -119,7 +118,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         for item in value:
             ingredient = item['ingredient']
             if ingredient in seen:
-                raise serializers.ValidationError('Ингредиенты не должны повторяться')  # noqa: E501
+                raise serializers.ValidationError('Ингредиентыне должны повторяться')  # noqa: E501
             seen.add(ingredient)
             if item['amount'] <= 0:
                 raise serializers.ValidationError('Количество ингредиента должно быть положительным')  # noqa: E501
@@ -193,7 +192,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializerForView(UserSerializer):
-    recipes = ShortRecipeSerializer(many=True, read_only=True, source='recipes')
+    recipes = ShortRecipeSerializer(many=True, read_only=True,
+                                    source='recipes')
     recipes_count = serializers.IntegerField(read_only=True)
 
     class Meta(UserSerializer.Meta):

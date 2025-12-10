@@ -4,11 +4,13 @@ from recipes.models import Ingredient
 from django.conf import settings
 from pathlib import Path
 
+
 class Command(BaseCommand):
     help = 'Load ingredients from data/ingredients.json'
 
     def handle(self, *args, **kwargs):
-        file_path = Path(settings.BASE_DIR).parent / 'data' / 'ingredients.json'
+        file_path = Path(
+            settings.BASE_DIR).parent / 'data' / 'ingredients.json'
 
         if not file_path.exists():
             self.stdout.write(self.style.ERROR(f'File not found: {file_path}'))

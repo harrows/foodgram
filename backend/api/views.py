@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum
 from django.http import HttpResponse
 from djoser.views import UserViewSet as DjoserUserViewSet
-from rest_framework import mixins, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
     AllowAny,
@@ -194,6 +194,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         content = '\n'.join(lines)
 
         response = HttpResponse(content, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment;' \
-        'filename="shopping_list.txt"'
+        response['Content-Disposition'
+                 ] = 'attachment; filename="shopping_list.txt"'
         return response

@@ -1,0 +1,13 @@
+[flake8]
+ignore =
+    W503,
+    F811
+exclude =
+    venv,
+    */venv/*,
+    migrations,
+    settings.py
+max-line-length = 79
+max-complexity = 10
+per-file-ignores =
+    */__init__.py:F401
