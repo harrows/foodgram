@@ -1,63 +1,55 @@
-
-# /backend/users/serializers.py
-from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
-from djoser.serializers import UserSerializer as DjoserUserSerializer
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from recipes.models import Recipe
-from .models import Subscription, User
+from users.models import Follow
+
+User = get_user_model()
 
 
-class UserSerializer(DjoserUserSerializer):
+class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
-    class Meta(DjoserUserSerializer.Meta):
+    class Meta:
         model = User
         fields = (
-            'id',
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'avatar',
+            'id', 'email', 'username',
+            'first_name', 'last_name',
             'is_subscribed',
         )
 
-    def get_is_subscribed(self, obj) -> bool:
+    def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Subscription.objects.filter(user=user, author=obj).exists()
+        return Follow.objects.filter(user=user, author=obj).exists()
 
 
-class UserCreateSerializer(DjoserUserCreateSerializer):
-    class Meta(DjoserUserCreateSerializer.Meta):
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
         model = User
         fields = (
-            'email',
-            'username',
-            'first_name',
-            'last_name',
+            'email', 'username',
+            'first_name', 'last_name',
             'password',
         )
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
-    """Короткое представление рецепта для подписок, избранного и т.п."""
-
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class SubscriptionSerializer(UserSerializer):
-    """Пользователь + его рецепты для страницы подписок."""
-
-    recipes = ShortRecipeSerializer(many=True, read_only=True, source='recipe_set')  # type: ignore # noqa: E501
-    recipes_count = serializers.SerializerMethodField()
+    recipes = ShortRecipeSerializer(many=True, read_only=True,
+                                    source='recipe_set')
+    recipes_count = serializers.IntegerField(read_only=True)
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ('recipes', 'recipes_count')
-
-    def get_recipes_count(self, obj) -> int:
-        return obj.recipe_set.count()

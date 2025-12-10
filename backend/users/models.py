@@ -1,15 +1,11 @@
-# /backend/users/models.py
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
 class User(AbstractUser):
-    email = models.EmailField('E-mail', unique=True)
-    avatar = models.ImageField(
-        'Аватар',
-        upload_to='users/avatars/',
-        blank=True,
-        null=True,
+    email = models.EmailField(
+        'Email',
+        unique=True,
     )
 
     USERNAME_FIELD = 'email'
@@ -17,29 +13,23 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ['id']
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
 
-    def __str__(self) -> str:
-        return f'{self.username} ({self.email})'
+    def __str__(self):
+        return self.username
 
 
-class Subscription(models.Model):
+class Follow(models.Model):
     user = models.ForeignKey(
         User,
-        related_name='subscriptions',
+        related_name='follower',
         on_delete=models.CASCADE,
         verbose_name='Подписчик',
     )
     author = models.ForeignKey(
         User,
-        related_name='subscribers',
+        related_name='following',
         on_delete=models.CASCADE,
         verbose_name='Автор',
-    )
-    created = models.DateTimeField(
-        'Дата подписки',
-        auto_now_add=True,
     )
 
     class Meta:
@@ -47,14 +37,14 @@ class Subscription(models.Model):
         verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=('user', 'author'),
-                name='unique_subscription',
+                fields=['user', 'author'],
+                name='unique_follow',
             ),
             models.CheckConstraint(
                 check=~models.Q(user=models.F('author')),
-                name='no_self_subscription',
+                name='prevent_self_follow',
             ),
         ]
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f'{self.user} -> {self.author}'

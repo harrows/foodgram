@@ -1,13 +1,9 @@
-# /backend/recipes/admin.py
 from django.contrib import admin
+from django.db.models import Count
 
 from .models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    ShoppingCart,
-    Tag,
+    Favorite, Ingredient, Recipe, RecipeIngredient,
+    ShoppingCart, Tag,
 )
 
 
@@ -31,14 +27,17 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'author', 'favorites_count')
-    search_fields = ('name', 'author__username', 'author__email')
-    list_filter = ('tags',)
+    list_filter = ('author', 'tags')
+    search_fields = ('name', 'author__username')
     inlines = (RecipeIngredientInline,)
 
-    def favorites_count(self, obj) -> int:
-        return obj.favorites.count()
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_favorites_count=Count('favorite_for'))
 
-    favorites_count.short_description = 'В избранном'
+    @admin.display(description='В избранном')
+    def favorites_count(self, obj):
+        return obj._favorites_count
 
 
 @admin.register(Favorite)
