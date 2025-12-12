@@ -121,7 +121,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 1️⃣ Копируем docker-compose
       - name: Copy docker-compose.production.yml
         uses: appleboy/scp-action@master
         with:
@@ -132,7 +131,6 @@ jobs:
           source: docker-compose.production.yml
           target: foodgram
 
-      # 2️⃣ Копируем ОДИН файл с ингредиентами (ЭТО ВАЖНО)
       - name: Copy ingredients.csv
         uses: appleboy/scp-action@master
         with:
@@ -143,8 +141,7 @@ jobs:
           source: data/ingredients.csv
           target: foodgram/data
 
-      # 3️⃣ Деплой + загрузка ингредиентов
-      - name: Deploy and load ingredients
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -153,13 +150,12 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             set -e
-
             cd ~/foodgram
+
             echo "${{ secrets.ENV_FILE }}" > .env
 
             docker compose pull
             docker compose down
-
             docker compose up -d db backend gateway
             docker compose run --rm frontend
 
@@ -168,3 +164,4 @@ jobs:
             docker compose exec backend python manage.py load_ingredients
 
             docker compose restart gateway
+
