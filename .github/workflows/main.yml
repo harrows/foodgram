@@ -141,7 +141,7 @@ jobs:
           source: data/ingredients.csv
           target: foodgram/data
 
-      - name: Deploy via SSH
+      - name: DEBUG SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -149,19 +149,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            set -e
-            cd ~/foodgram
-
-            echo "${{ secrets.ENV_FILE }}" > .env
-
-            docker compose pull
-            docker compose down
-            docker compose up -d db backend gateway
-            docker compose run --rm frontend
-
-            docker compose exec backend python manage.py migrate
-            docker compose exec backend python manage.py collectstatic --noinput
-            docker compose exec backend python manage.py load_ingredients
-
-            docker compose restart gateway
+            echo "SSH works"
+            whoami
+            pwd
 
