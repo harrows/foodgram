@@ -148,9 +148,15 @@ jobs:
             echo "${{ secrets.ENV_FILE }}" > .env
             docker compose -f docker-compose.production.yml pull
             docker compose -f docker-compose.production.yml down
-            docker compose -f docker-compose.production.yml up -d
+
+            docker compose -f docker-compose.production.yml up -d db backend gateway
+            docker compose -f docker-compose.production.yml run --rm frontend
+
             docker compose -f docker-compose.production.yml exec backend python manage.py migrate
             docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
+
+            docker compose -f docker-compose.production.yml restart gateway
+
 
       - name: Send Telegram notification
         if: success()
