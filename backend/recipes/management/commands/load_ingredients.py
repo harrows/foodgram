@@ -8,8 +8,7 @@ from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
-    help = 'Load ingredients from' \
-    'data/ingredients.csv or data/ingredients.json'
+    help = 'Load ingredients from data/ingred.csv or data/ingred.json'
 
     def handle(self, *args, **options):
         project_root = Path(__file__).resolve().parents[4]
