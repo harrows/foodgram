@@ -1,36 +1,49 @@
+import csv
 import json
-from django.core.management.base import BaseCommand
-from recipes.models import Ingredient
-from django.conf import settings
 from pathlib import Path
+
+from django.core.management.base import BaseCommand, CommandError
+
+from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
-    help = 'Load ingredients from data/ingredients.json'
+    help = 'Load ingredients from data/ingredients.csv or data/ingredients.json'
 
-    def handle(self, *args, **kwargs):
-        file_path = Path(
-            settings.BASE_DIR).parent / 'data' / 'ingredients.json'
+    def handle(self, *args, **options):
+        project_root = Path(__file__).resolve().parents[4]
 
-        if not file_path.exists():
-            self.stdout.write(self.style.ERROR(f'File not found: {file_path}'))
-            return
+        data_dir = project_root / 'data'
+        csv_path = data_dir / 'ingredients.csv'
+        json_path = data_dir / 'ingredients.json'
 
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        if csv_path.exists():
+            self.stdout.write(f'Loading ingredients from {csv_path}')
+            with open(csv_path, encoding='utf-8') as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    if not row:
+                        continue
+                    name, measurement_unit = row
+                    Ingredient.objects.get_or_create(
+                        name=name.strip(),
+                        measurement_unit=measurement_unit.strip()
+                    )
 
-        Ingredient.objects.all().delete()  # очистка перед загрузкой
+        elif json_path.exists():
+            self.stdout.write(f'Loading ingredients from {json_path}')
+            with open(json_path, encoding='utf-8') as f:
+                data = json.load(f)
+                for item in data:
+                    Ingredient.objects.get_or_create(
+                        name=item['name'].strip(),
+                        measurement_unit=item['measurement_unit'].strip()
+                    )
 
-        objs = [
-            Ingredient(
-                name=item['name'],
-                measurement_unit=item['measurement_unit']
+        else:
+            raise CommandError(
+                'No ingredients.csv or ingredients.json found in data/'
             )
-            for item in data
-        ]
-
-        Ingredient.objects.bulk_create(objs)
 
         self.stdout.write(self.style.SUCCESS(
-            f'Successfully loaded {len(objs)} ingredients!'
-        ))
+            'Ingredients loaded successfully'))

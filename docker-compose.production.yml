@@ -23,6 +23,7 @@ services:
     volumes:
       - backend_static:/app/collected_static
       - backend_media:/app/media
+      - ./data:/app/data:ro
 
   frontend:
     image: harrowsdocker/foodgram_frontend:latest
