@@ -135,3 +135,4 @@ DJOSER = {
 }
 
 SHORT_LINK_BASE = os.getenv('SHORT_LINK_BASE', 'http://localhost/r/')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()

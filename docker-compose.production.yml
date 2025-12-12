@@ -20,6 +20,8 @@ services:
     env_file: .env
     depends_on:
       - db
+    environment:
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
     volumes:
       - backend_static:/app/collected_static
       - backend_media:/app/media
