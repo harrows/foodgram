@@ -2,6 +2,7 @@ import csv
 import json
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from recipes.models import Ingredient
@@ -11,11 +12,13 @@ class Command(BaseCommand):
     help = 'Load ingredients from data/ingred.csv or data/ingred.json'
 
     def handle(self, *args, **options):
-        project_root = Path(__file__).resolve().parents[4]
-
+        project_root = Path(settings.BASE_DIR).parent
         data_dir = project_root / 'data'
+
         csv_path = data_dir / 'ingredients.csv'
         json_path = data_dir / 'ingredients.json'
+
+        self.stdout.write(f'Looking for ingredients in: {data_dir}')
 
         if csv_path.exists():
             self.stdout.write(f'Loading ingredients from {csv_path}')
@@ -42,7 +45,7 @@ class Command(BaseCommand):
 
         else:
             raise CommandError(
-                'No ingredients.csv or ingredients.json found in data/'
+                f'No ingredients.csv or ingredients.json found in {data_dir}'
             )
 
         self.stdout.write(self.style.SUCCESS(
