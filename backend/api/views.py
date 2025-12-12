@@ -10,6 +10,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from recipes.filters import IngredientFilter, RecipeFilter
 from recipes.models import (
@@ -110,6 +111,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     filterset_class = IngredientFilter
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name',)
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

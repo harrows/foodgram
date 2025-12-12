@@ -2,12 +2,18 @@
 ignore =
     W503,
     F811
+
 exclude =
+    .git,
+    __pycache__,
+    backend/venv,
     venv,
-    */venv/*,
-    migrations,
-    settings.py
+    .venv,
+    env,
+    migrations
+
 max-line-length = 79
 max-complexity = 10
+
 per-file-ignores =
     */__init__.py:F401
