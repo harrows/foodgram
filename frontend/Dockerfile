@@ -6,4 +6,4 @@ RUN npm install --legacy-peer-deps
 COPY . ./
 RUN npm run build
 
-CMD cp -r /app/build/* /var/html/frontend/
+CMD cp -r /app/build/* /frontend_build/
