@@ -142,7 +142,8 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: |
             docker-compose.production.yml
-            data/**
+            data/ingredients.csv
+            data/ingredients.json
           target: foodgram
 
       - name: Deploy via SSH
