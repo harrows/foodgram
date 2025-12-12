@@ -6,8 +6,8 @@ on:
 
 jobs:
   tests:
+    name: Run backend tests
     runs-on: ubuntu-latest
-    name: Run backend & frontend tests
 
     steps:
       - name: Checkout repository
@@ -29,6 +29,7 @@ jobs:
 
       - name: Run backend tests
         run: pytest
+
 
   build_and_push_backend:
     name: Build & Push backend image
@@ -52,8 +53,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
+
 
   build_and_push_frontend:
     name: Build & Push frontend image
@@ -77,8 +80,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+
 
   build_and_push_gateway:
     name: Build & Push gateway image
@@ -102,8 +107,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./nginx
+          file: ./nginx/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest
+
 
   deploy:
     name: Deploy to server
@@ -133,8 +140,8 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "docker-compose.production.yml"
-          target: "foodgram"
+          source: docker-compose.production.yml
+          target: foodgram
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
@@ -146,6 +153,7 @@ jobs:
           script: |
             cd foodgram
             echo "${{ secrets.ENV_FILE }}" > .env
+
             docker compose -f docker-compose.production.yml pull
             docker compose -f docker-compose.production.yml down
 
@@ -156,7 +164,6 @@ jobs:
             docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
 
             docker compose -f docker-compose.production.yml restart gateway
-
 
       - name: Send Telegram notification
         if: success()

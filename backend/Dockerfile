@@ -1,15 +1,18 @@
-FROM node:18-alpine AS build
+FROM python:3.11-slim
 
 WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN npm install --legacy-peer-deps
-ENV PUBLIC_URL=/
-RUN npm run build
 
-FROM alpine:3.20
-WORKDIR /app
-
-COPY --from=build /app/build /app/build
-
-CMD sh -c "rm -rf /frontend/* && cp -r /app/build/* /frontend/"
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram.wsgi:application"]
