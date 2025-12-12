@@ -124,7 +124,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Prepare target dirs on server
+      - name: Prepare directories on server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -145,15 +145,18 @@ jobs:
           source: docker-compose.production.yml
           target: foodgram
 
-      - name: Copy ingredients.csv
+      - name: Copy ingredients files (no nested data/data)
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: data/ingredients.csv
+          source: |
+            data/ingredients.csv
+            data/ingredients.json
           target: foodgram/data
+          strip_components: 1
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
@@ -168,6 +171,10 @@ jobs:
 
             echo "${{ secrets.ENV_FILE }}" > .env
 
+            echo "=== server files ==="
+            ls -la ~/foodgram
+            ls -la ~/foodgram/data
+
             docker compose -f docker-compose.production.yml pull
             docker compose -f docker-compose.production.yml down
 
@@ -176,6 +183,10 @@ jobs:
 
             docker compose -f docker-compose.production.yml exec backend python manage.py migrate
             docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
+
+            echo "=== container /data ==="
+            docker compose -f docker-compose.production.yml exec backend ls -la /data
+
             docker compose -f docker-compose.production.yml exec backend python manage.py load_ingredients
 
             docker compose -f docker-compose.production.yml restart gateway
