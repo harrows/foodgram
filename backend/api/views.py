@@ -127,7 +127,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeReadSerializer
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save()
 
     def _add_to(self, model, user, recipe):
         obj, created = model.objects.get_or_create(user=user, recipe=recipe)
