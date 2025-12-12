@@ -2,21 +2,22 @@ name: Foodgram CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
+
   tests:
     name: Run backend tests
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install backend dependencies
         run: |
@@ -37,23 +38,18 @@ jobs:
     needs: tests
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: ./backend
-          file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
 
@@ -64,23 +60,18 @@ jobs:
     needs: tests
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: ./frontend
-          file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
 
@@ -91,23 +82,18 @@ jobs:
     needs: tests
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push gateway image
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: ./nginx
-          file: ./nginx/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest
 
@@ -121,19 +107,13 @@ jobs:
       - build_and_push_gateway
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Prepare directories on server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            set -e
-            mkdir -p ~/foodgram/data
+      - uses: actions/checkout@v3
+      - name: Debug data folder
+        run: |
+          echo "Runner files:"
+          ls -la
+          echo "Data folder:"
+          ls -la data
 
       - name: Copy docker-compose.production.yml
         uses: appleboy/scp-action@master
@@ -145,16 +125,14 @@ jobs:
           source: docker-compose.production.yml
           target: foodgram
 
-      - name: Copy ingredients files (no nested data/data)
+      - name: Copy data directory
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: |
-            data/ingredients.csv
-            data/ingredients.json
+          source: data/**
           target: foodgram/data
           strip_components: 1
 
@@ -166,14 +144,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            set -e
-            cd ~/foodgram
-
+            cd foodgram
             echo "${{ secrets.ENV_FILE }}" > .env
-
-            echo "=== server files ==="
-            ls -la ~/foodgram
-            ls -la ~/foodgram/data
 
             docker compose -f docker-compose.production.yml pull
             docker compose -f docker-compose.production.yml down
@@ -183,17 +155,14 @@ jobs:
 
             docker compose -f docker-compose.production.yml exec backend python manage.py migrate
             docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
-
-            echo "=== container /data ==="
-            docker compose -f docker-compose.production.yml exec backend ls -la /data
-
             docker compose -f docker-compose.production.yml exec backend python manage.py load_ingredients
 
             docker compose -f docker-compose.production.yml restart gateway
 
-      - name: Send Telegram notification
+
+      - name: Telegram notification
         if: success()
         run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.TELEGRAM_TO }} \
-            -d text="Foodgram успешно задеплоен!%0AАвтор: ${{ github.actor }}%0AКоммит: ${{ github.sha }}"
+            -d text="Foodgram задеплоен успешно"
