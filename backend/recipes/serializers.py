@@ -7,8 +7,6 @@ from .models import (
     RecipeIngredient, ShoppingCart, Tag,
 )
 
-from recipes.models import Recipe
-
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
