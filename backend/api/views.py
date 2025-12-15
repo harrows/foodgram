@@ -28,6 +28,7 @@ from users.models import Follow
 from users.serializers import SubscriptionSerializer, UserSerializer
 
 from .permissions import IsAuthorOrReadOnly
+from users.serializers import AvatarSerializer
 
 User = get_user_model()
 
@@ -96,6 +97,29 @@ class CustomUserViewSet(DjoserUserViewSet):
                 {'errors': 'Подписки не было.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
+        methods=['put', 'delete'],
+        permission_classes=[IsAuthenticated],
+        url_path='me/avatar',
+    )
+    def avatar(self, request):
+        user = request.user
+
+        if request.method == 'PUT':
+            serializer = AvatarSerializer(
+                user,
+                data=request.data,
+                context={'request': request},
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if user.avatar:
+            user.avatar.delete(save=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -7,6 +7,11 @@ class User(AbstractUser):
         'Email',
         unique=True,
     )
+    avatar = models.ImageField(
+        upload_to='users/avatars/',
+        blank=True,
+        null=True,
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
@@ -16,6 +21,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
 
 
 class Follow(models.Model):

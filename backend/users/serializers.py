@@ -1,3 +1,4 @@
+from drf_extra_fields.fields import Base64ImageField
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -79,3 +80,11 @@ class SubscriptionSerializer(UserSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+
+class AvatarSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('avatar',)
