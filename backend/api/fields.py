@@ -1,4 +1,3 @@
-# /backend/api/fields.py
 import base64
 
 from django.core.files.base import ContentFile
@@ -6,7 +5,6 @@ from rest_framework import serializers
 
 
 class Base64ImageField(serializers.ImageField):
-    """Поле для приёма картинок в base64 (как делает фронт)."""
 
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):

@@ -1,4 +1,3 @@
-# /backend/api/serializers.py
 from django.db import transaction
 from rest_framework import serializers
 

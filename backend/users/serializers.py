@@ -49,7 +49,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
-    """Короткий сериализатор рецепта ТОЛЬКО ДЛЯ users"""
 
     class Meta:
         model = Recipe

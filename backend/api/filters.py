@@ -1,4 +1,3 @@
-# /backend/api/filters.py
 import django_filters as filters
 
 from recipes.models import Ingredient, Recipe, Tag
@@ -40,5 +39,4 @@ class IngredientFilter(filters.FilterSet):
         fields = ('name',)
 
     def filter_name(self, queryset, name, value):
-        # Поиск по началу строки, регистронезависимый
         return queryset.filter(name__istartswith=value)
