@@ -39,7 +39,7 @@ class CustomUserViewSet(DjoserUserViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        if self.action in ('list', 'retrieve', 'me'):
+        if self.action in ('list', 'retrieve'):
             return [AllowAny()]
         return super().get_permissions()
 
