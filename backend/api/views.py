@@ -34,6 +34,7 @@ User = get_user_model()
 
 
 class CustomUserViewSet(DjoserUserViewSet):
+    permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
