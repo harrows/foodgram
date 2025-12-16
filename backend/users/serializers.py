@@ -10,6 +10,7 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -20,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
+            'avatar',
         )
 
     def get_is_subscribed(self, obj):
@@ -30,6 +32,14 @@ class UserSerializer(serializers.ModelSerializer):
             user=request.user,
             author=obj
         ).exists()
+
+    def get_avatar(self, obj):
+        request = self.context.get('request')
+        if not obj.avatar:
+            return None
+        if request is None:
+            return obj.avatar.url
+        return request.build_absolute_uri(obj.avatar.url)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -49,7 +59,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
@@ -61,7 +70,9 @@ class SubscriptionSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + (
-            'recipes', 'recipes_count')
+            'recipes',
+            'recipes_count',
+        )
 
     def get_recipes(self, obj):
         request = self.context.get('request')
@@ -74,7 +85,7 @@ class SubscriptionSerializer(UserSerializer):
         return RecipeShortSerializer(
             recipes,
             many=True,
-            context={'request': request}
+            context={'request': request},
         ).data
 
     def get_recipes_count(self, obj):
