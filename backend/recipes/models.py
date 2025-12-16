@@ -1,7 +1,12 @@
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 User = settings.AUTH_USER_MODEL
+
+
+MIN_VALUE = 1
+MAX_VALUE = 32_000
 
 
 class Tag(models.Model):
@@ -58,8 +63,17 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Теги',
     )
-    cooking_time = models.PositiveIntegerField('Время приготовления (мин)')
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления (мин)',
+        validators=[
+            MinValueValidator(MIN_VALUE),
+            MaxValueValidator(MAX_VALUE),
+        ],
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
 
     class Meta:
         ordering = ['-pub_date']
@@ -81,9 +95,16 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         related_name='ingredient_recipes',
     )
-    amount = models.PositiveIntegerField('Количество')
+    amount = models.PositiveSmallIntegerField(
+        'Количество',
+        validators=[
+            MinValueValidator(MIN_VALUE),
+            MaxValueValidator(MAX_VALUE),
+        ],
+    )
 
     class Meta:
+        ordering = ['ingredient']
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецепта'
         constraints = [
@@ -110,6 +131,7 @@ class Favorite(models.Model):
     )
 
     class Meta:
+        ordering = ['recipe']
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
         constraints = [
@@ -120,7 +142,7 @@ class Favorite(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user} -> {self.recipe}'
+        return f'{self.user} → {self.recipe}'
 
 
 class ShoppingCart(models.Model):
@@ -136,6 +158,7 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
+        ordering = ['recipe']
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
         constraints = [
